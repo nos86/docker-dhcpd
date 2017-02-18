@@ -1,6 +1,15 @@
 #!/bin/bash
 set -e
 
+# create user and group if necessary
+if [ ! $(getent group $GID) ]; then
+    addgroup -g $GID syncthing
+fi
+GROUP_NAME=$(getent group $GID | cut -f 1 -d ":")
+if [ ! $(getent passwd $UID) ]; then
+    adduser -D -H -u $UID -G $GROUP_NAME syncthing
+fi
+
 # Single argument to command line is interface name
 if [ -n "$1" ]; then
     # loop until interface is found, or we give up
@@ -34,7 +43,6 @@ if [ -n "$IFACE" ]; then
     dhcpd_conf="$data_dir/dhcpd.conf"
     if [ ! -r "$dhcpd_conf" ]; then
         echo "Please ensure '$dhcpd_conf' exists and is readable."
-        echo "Run the container with arguments 'man dhcpd.conf' if you need help with creating the configuration."
         exit 1
     fi
 
