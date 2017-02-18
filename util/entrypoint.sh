@@ -1,15 +1,6 @@
 #!/bin/bash
 set -e
 
-# create user and group if necessary
-if [ ! $(getent group $GID) ]; then
-    addgroup -g $GID syncthing
-fi
-GROUP_NAME=$(getent group $GID | cut -f 1 -d ":")
-if [ ! $(getent passwd $UID) ]; then
-    adduser -D -H -u $UID -G $GROUP_NAME syncthing
-fi
-
 # Single argument to command line is interface name
 if [ -n "$1" ]; then
     # loop until interface is found, or we give up
@@ -56,10 +47,6 @@ if [ -n "$IFACE" ]; then
     fi
 
     [ -e "$data_dir/dhcpd.leases" ] || touch "$data_dir/dhcpd.leases"
-    chown dhcpd:dhcpd "$data_dir/dhcpd.leases"
-    if [ -e "$data_dir/dhcpd.leases~" ]; then
-        chown dhcpd:dhcpd "$data_dir/dhcpd.leases~"
-    fi
 
     container_id=$(grep docker /proc/self/cgroup | sort -n | head -n 1 | cut -d: -f3 | cut -d/ -f3)
     if perl -e '($id,$name)=@ARGV;$short=substr $id,0,length $name;exit 1 if $name ne $short;exit 0' $container_id $HOSTNAME; then
